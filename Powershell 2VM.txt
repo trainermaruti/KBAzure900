@@ -1,0 +1,29 @@
+$resourceGroup = "TrainingHARG"
+$location = "eastus"
+
+New-AzResourceGroup -Name $resourceGroup -Location $location
+
+New-AzAvailabilitySet `
+   -Location $location `
+   -Name "myAvailabilitySet" `
+   -ResourceGroupName $resourceGroup `
+   -Sku aligned `
+   -PlatformFaultDomainCount 2 `
+   -PlatformUpdateDomainCount 5
+
+$cred = Get-Credential
+
+for ($i=1; $i -le 2; $i++)
+{
+    New-AzVm `
+        -ResourceGroupName $resourceGroup `
+        -Name "marutiVM$i" -Size Standard_D2s_v3 `
+        -Location $location `
+        -VirtualNetworkName "myVnet" `
+        -SubnetName "mySubnet" `
+        -SecurityGroupName "myNetworkSecurityGroup" `
+        -PublicIpAddressName "marutiPublicIp$i" `
+        -AvailabilitySetName myAvailabilitySet `
+        -OpenPorts 3389 `
+        -Credential $cred
+}
